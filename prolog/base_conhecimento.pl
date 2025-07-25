@@ -11,7 +11,7 @@
 :- dynamic tem_carta/2, nao_tem_carta/2.
 
 % jogador, carta_a, carta_b
-:- dynamic pode_ter_carta/3.
+:- dynamic pode_ter_ou/3.
 
 
 % ----- FATOS -----
@@ -111,52 +111,78 @@ descartar_com_ou :-
     ).
 
 
-/*
-    Mostra todas as cartas que podem ser perguntadas, mostrando quais cartas tem mais chances de estar com j1
-*/
-como_perguntar(Carta) :-
-    (
-        findall(Carta, tem_carta(j1, Carta), Lista),
-        length(Lista, Quantidade), Quantidade < 3
-    ) -> 
-    (
-        carta(Carta, _), % Pega as cartas
-        \+ descartada(Carta, _), % Tirando as que já foram descartadas
-        filtrar_cartas_j1(Carta),
-        (         
-            % Não está com os outros jogadores
-            (nao_j2_e_j3(Carta) -> format("nao j2 e j3 : ~w", [Carta]));    
-            % Não está com pelo um dos outros jogadores
-            (nao_j2_ou_j3(Carta) -> format("nao j2 ou j3 : ~w", [Carta])); 
-            % Não está com j1
-            format("nao j1 : ~w", [Carta])
-        )
-    );
-    write("Perguntas esgotadas").
+% -------------------------- COMO PERGUNTAR --------------------------
+
+como_perguntar(Status, Status_perguntada, Carta) :-
+    carta(Carta, _),
+    verifica_condicoes(1, Status, Carta),
+    verifica_condicoes_2(1, Status_perguntada, Carta),
+
+% ------------------- Sobre Outros Jogadores -------------------------
+
+num_condicoes(3).
+
+verifica_condicoes(Id, Ultimo_status, Carta) :- 
+    num_condicoes(Max),
+    Id =< Max,
+    condicao_pergunta(Id, _, Carta),
+    Next_Id is Id + 1,
+    verifica_condicoes(Next_Id, Ultimo_status, Carta), !.
+
+verifica_condicoes(Id, Status, Carta) :-
+    Id > 1,
+    Prev_Id is Id - 1,
+    condicao_pergunta(Prev_Id, Status, Carta), !.
 
 
-nao_j2_ou_j3(Carta) :-
-% Verdadeiro se estiver com j2 ou com j3
-    nao_tem_carta(j2, Carta); nao_tem_carta(j3, Carta).
+% Verifico se a carta é válida e removo as descartadas e evidências
+condicao_pergunta(1, '(1) N foi descartada e n esta com j0', Carta) :- 
+    \+ descartada(Carta, _), % não foi descartada
+    \+ evidencia(Carta, _), % não é uma evidência do j0
+    \+ foi_perguntada(j0 ,Carta).
+
+% Removo as cartas que eu sei que j3 e j3 não tem
+condicao_pergunta(2, '(3) Os outros jogadores não tem a carta') :-
+    nao_tem_carta(j2, Carta);
+    nao_tem_carta(j3, Carta).
+
+% Removo Cartas que outros jogadores podem ter ou não
+condicao_pergunta(3, '(3) N sao cartas que outros jogadores podem ter', Carta) :-
+    \+ pode_ter_ou(_, Carta, _),
+    \+ pode_ter_ou(_, _, Carta).
 
 
-nao_j2_e_j3(Carta) :-
-% Verdadeiro se estiver com j2 e j3
-    nao_tem_carta(j2, Carta), nao_tem_carta(j3, Carta).
+% ----------------- Caminho das Cartas Perguntadas -------------------
+
+num_condicoes_2(1).
+
+verifica_condicoes_2(Id, Ultimo_status, Carta) :- 
+    num_condicoes_2(Max),
+    Id =< Max,
+    condicao_pergunta_2(Id, _, Carta),
+    Next_Id is Id + 1,
+    verifica_condicoes_2(Next_Id, Ultimo_status, Carta), !.
+
+verifica_condicoes_2(Id, Status, Carta) :-
+    Id > 1,
+    Prev_Id is Id - 1,
+    condicao_pergunta_2(Prev_Id, Status, Carta), !.
 
 
-filtrar_cartas_j1(Carta) :-
-% Filtradas as cartas que sabemos que estão e não estão com j1
-    \+ tem_carta(j1, Carta), % Tirando as cartas que j1 tem
-    \+ nao_tem_carta(j1, Carta). % Tirando as cartas que j1 não tem
+condicao_pergunta_2(1, '(1) N foi perguntada ainda', Carta) :- 
+    \+ descartada(Carta, _), % não foi descartada
+    \+ evidencia(Carta, _). % não é uma evidência do j0
+    \+ foi_perguntada(_, Carta).
+
+% --------------------------------------------------------------------
 
 
-foi_perguntada(Carta) :-
+foi_perguntada(Jogador, Carta) :-
 % Verdadeiro se a carta apareceu em alguma pergunta
     carta(Carta, _Tipo),
     (
-        pergunta(_, _, Carta, _, _);
-        pergunta(_, _, _, Carta, _)
+        pergunta(Jogador, _, Carta, _, _);
+        pergunta(Jogador, _, _, Carta, _)
     ).
 
 
@@ -186,5 +212,3 @@ como_responder(Carta_a, Carta_b) :-
             evidencia(Carta_b, _), format("Resposta: ~w", [Carta_b])
         )
     ).
-
-% como_acusar :-
