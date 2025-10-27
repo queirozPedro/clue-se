@@ -13,9 +13,7 @@
 % jogador, carta_a, carta_b
 :- dynamic pode_ter_ou/3.
 
-
 % ----- FATOS -----
-
 
 carta(castical, arma).
 carta(corda, arma).
@@ -38,19 +36,31 @@ carta(white, suspeito).
 
 % ----- REGRAS -----
 
-
 /*
-    descarta a carta se:
-        A carta existir no fato carta/2,
-        ela não já estiver sido descartada/2,
-        descarta ela.
+    descarta a carta:
+        SE carta existir e não estiver descartada
+        ENTÃO cria o fato descartada
+        SENÃO remove o fato descartada
 
 */
-descartar(Carta) :-
-    carta(Carta, Tipo),
-    \+ descartada(Carta, Tipo),
-    assert(descartada(Carta, Tipo)).
+descartar_carta(Carta) :-
+    carta(Carta, Tipo), \+ descartada(Carta, Tipo) ->
+    (
+        assert(descartada(Carta, Tipo))
+    );
+    (
+        retract(descartada(Carta, _Tipo))
+    ).
     
+
+/*
+    Verifica se os tipos são diferentes
+*/
+tipos_diferentes(Carta_a, Carta_b) :-
+    carta(Carta_a, Tipo_a),
+    carta(Carta_b, Tipo_b),
+    Tipo_a \= Tipo_b.
+
 
 /*
     pergunta/5 se:
@@ -142,7 +152,7 @@ condicao_pergunta(1, '(1) N foi descartada e n esta com j0', Carta) :-
     \+ foi_perguntada(j0 ,Carta).
 
 % Removo as cartas que eu sei que j3 e j3 não tem
-condicao_pergunta(2, '(3) Os outros jogadores não tem a carta') :-
+condicao_pergunta(2, '(3) Os outros jogadores não tem a carta', Carta) :-
     nao_tem_carta(j2, Carta);
     nao_tem_carta(j3, Carta).
 
@@ -168,10 +178,9 @@ verifica_condicoes_2(Id, Status, Carta) :-
     Prev_Id is Id - 1,
     condicao_pergunta_2(Prev_Id, Status, Carta), !.
 
-
 condicao_pergunta_2(1, '(1) N foi perguntada ainda', Carta) :- 
     \+ descartada(Carta, _), % não foi descartada
-    \+ evidencia(Carta, _). % não é uma evidência do j0
+    \+ evidencia(Carta, _), % não é uma evidência do j0
     \+ foi_perguntada(_, Carta).
 
 % --------------------------------------------------------------------
@@ -184,12 +193,6 @@ foi_perguntada(Jogador, Carta) :-
         pergunta(Jogador, _, Carta, _, _);
         pergunta(Jogador, _, _, Carta, _)
     ).
-
-
-marcar_evidencia(Carta) :-
-    carta(Carta, Tipo),
-    assert(evidencia(Carta, Tipo)),
-    descartar(Carta).
 
 
 como_responder(Carta_a, Carta_b) :-

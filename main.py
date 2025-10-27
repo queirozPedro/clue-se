@@ -4,11 +4,9 @@ from interface.cli import Interface
 
 def main():
     motor_inferencia = Motor_inferencia()
+    interface = Interface(motor_inferencia)
+    interface.start()
 
-    motor_inferencia.como_perguntar()
-
-    # interface = Interface(motor_inferencia)
-    # interface.start()
 
 if __name__ == "__main__":  
     main()

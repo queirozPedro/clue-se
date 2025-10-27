@@ -20,7 +20,71 @@ class Motor_inferencia:
         self.prolog.consult(caminho_completo)
 
 
+    def obter_cartas(self):
+        try:
+            resultados = [
+                {"carta": r["Carta"], "tipo": r["Tipo"]}
+                for r in self.prolog.query("carta(Carta, Tipo)")
+            ]
+            return resultados
+        except Exception as e:
+            print(f"Erro ao consultar cartas: {e}")
+            return []
+    
+
+    def obter_descartadas(self):
+        try:
+            resultados = [
+                {"carta": r["Carta"], "tipo": r["Tipo"]}
+                for r in self.prolog.query("descartada(Carta, Tipo)")
+            ]
+            return resultados
+        except Exception as e:
+            print(f"Erro ao consultar descartadas: {e}")
+            return []
+        
+
+    def descartar_carta(self, carta):
+        list(self.prolog.query(f"descartar_carta({carta})"))
+    
+
+    def marcar_evidencias(self, cartas):
+        self.prolog.retractall("(evidencia(_, _))")
+        
+        for carta in cartas:
+            resultados = list(self.prolog.query(f"carta({carta}, Tipo)"))
+            for r in resultados:
+                tipo = r['Tipo']
+                self.prolog.assertz(f"evidencia({carta}, {tipo})")
+
+    
+    def obter_evidencias(self):
+        try:
+            resultados = [
+                {"carta": r["Carta"], "tipo": r["Tipo"]}
+                for r in self.prolog.query("evidencia(Carta, Tipo)")
+            ]
+            return resultados
+        except Exception as e:
+            print(f"Erro ao consultar evidencia: {e}")
+            return []
+
+
+    def tipos_diferentes(self ,carta_a, carta_b):
+        try:
+            resultado = list(self.prolog.query(f"tipos_diferentes({carta_a}, {carta_b})"))
+            if resultado:
+                return True
+            else:
+                return False
+        except Exception as e:
+            print(f"Erro ao consultar tipos_diferentes: {e}")
+            return False
+
+
+
     def como_perguntar(self):
         query = self.prolog.query("como_perguntar(Status, Status_perguntado, Carta)")
         for result in query:
             print(f"{result['Carta']} : {result['Status']} {result['Status_perguntado']}")
+
