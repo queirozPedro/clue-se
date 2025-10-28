@@ -80,7 +80,7 @@ perguntar(Jogador_a, Jogador_b, Carta_a, Carta_b, Resposta) :-
     ) ->
     (
         assert(tem_carta(Jogador_b, Resposta)), % Nesse caso, Jogador_b será j1
-        descartar(Resposta)
+        descartar_carta(Resposta)
     );
     (
         Resposta == true ->
@@ -106,7 +106,7 @@ descartar_com_ou :-
     (
         retract(tem_carta_ou(Jogador_b, Carta_a, Carta_b)),
         assert(tem_carta(Jogador_b, Carta_b)),
-        descartar(Carta_b)
+        descartar_carta(Carta_b)
     );
     (
         (
@@ -116,7 +116,7 @@ descartar_com_ou :-
         (
             retract(tem_carta_ou(Jogador_b, Carta_a, Carta_b)),
             assert(tem_carta(Jogador_b, Carta_a)),
-            descartar(Carta_a)
+            descartar_carta(Carta_a)
         )
     ).
 

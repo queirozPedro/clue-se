@@ -43,7 +43,6 @@ class Motor_inferencia:
             print(f"Erro ao consultar descartadas: {e}")
             return []
         
-
     def descartar_carta(self, carta):
         list(self.prolog.query(f"descartar_carta({carta})"))
     
@@ -57,7 +56,6 @@ class Motor_inferencia:
                 tipo = r['Tipo']
                 self.prolog.assertz(f"evidencia({carta}, {tipo})")
 
-    
     def obter_evidencias(self):
         try:
             resultados = [
@@ -69,6 +67,8 @@ class Motor_inferencia:
             print(f"Erro ao consultar evidencia: {e}")
             return []
 
+    def perguntar(self, cartas, jogadores, resposta):
+        list(self.prolog.query(f"perguntar({jogadores[0]}, {jogadores[1]}, {cartas[0]}, {cartas[1]}, {resposta})"))
 
     def tipos_diferentes(self ,carta_a, carta_b):
         try:
@@ -82,9 +82,4 @@ class Motor_inferencia:
             return False
 
 
-
-    def como_perguntar(self):
-        query = self.prolog.query("como_perguntar(Status, Status_perguntado, Carta)")
-        for result in query:
-            print(f"{result['Carta']} : {result['Status']} {result['Status_perguntado']}")
 

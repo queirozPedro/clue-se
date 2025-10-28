@@ -2,6 +2,7 @@ from InquirerPy import inquirer
 from colorama import init, Fore, Style
 import os
 from motor.motor_inferencia import Motor_inferencia
+import re
 
 init(autoreset=True)
 
@@ -50,6 +51,7 @@ class Interface:
             "Exibir Descartadas", # 3
             "Marcar Evidencias", # 4
             "Exibir Evidencias", # 5
+            "Perguntar", # 6
             "Sair"
             ],
             height=15,
@@ -74,10 +76,12 @@ class Interface:
     def executar_opcao_jogo(self, op_jogo):
         match op_jogo:
             case "Exibir Cartas": # 1
+                limpar_terminal()
                 self.exibir_cartas_jogador()
                 pausar_terminal()
             
             case "Realizar Descarte": # 2
+                limpar_terminal()
                 cartas = self.motor_inferencia.obter_cartas()
                 nome_cartas = [c["carta"] for c in cartas]
                 opcoes = inquirer.checkbox(
@@ -93,32 +97,94 @@ class Interface:
                 pausar_terminal()
 
             case "Exibir Descartadas": # 3
+                limpar_terminal()
                 self.exibir_descartadas_jogador()
                 pausar_terminal()
             
             case "Marcar Evidencias": # 4
+                limpar_terminal()
                 cartas = self.motor_inferencia.obter_cartas()
                 nome_cartas = [c["carta"] for c in cartas]
-                while True:
-                    evidencias = inquirer.checkbox(
-                        message="Selecione suas evidências",
-                        choices=nome_cartas,
-                        height=15,
-                        qmark="",
-                        pointer="->",
-                        cycle=True,
-                    ).execute()
-                    if len(evidencias) == 12 / self.quant_jogadores:
-                        self.motor_inferencia.marcar_evidencias(evidencias)
-                        pausar_terminal()
-                        break
-                    else:
-                        print(f"Para um jogo com {self.quant_jogadores} jogadores, cada jogador deve possuir {(12 / self.quant_jogadores):.0f} evidências!")
-                    pausar_terminal()
-                    
+                evidencias = inquirer.checkbox(
+                    message="Selecione suas evidências",
+                    choices=nome_cartas,
+                    height=15,
+                    qmark="",
+                    pointer="->",
+                    cycle=True,
+                ).execute()
+                if len(evidencias) == 12 / self.quant_jogadores:
+                    self.motor_inferencia.marcar_evidencias(evidencias)
+                else:
+                    print(f"Para um jogo com {self.quant_jogadores} jogadores, cada jogador deve possuir {(12 / self.quant_jogadores):.0f} evidências!")
+                pausar_terminal()       
 
             case "Exibir Evidencias": # 5
+                limpar_terminal()
                 self.exibir_evidencias_jogador()
+                pausar_terminal()
+            
+            case "Perguntar":
+                limpar_terminal()
+                op = [
+                    { "name": f"Jogador_{i} para Jogador_{(i+1) % self.quant_jogadores}", "value": i }
+                    for i in range(self.quant_jogadores)
+                ]
+                jogadores_pergunta = inquirer.select(
+                    message="Selecione os jogadores da pergunta",
+                    choices=op,
+                    height=self.quant_jogadores,
+                    qmark="",
+                    default=None,
+                    pointer="->",
+                    cycle=True,
+                ).execute()
+                
+                nome_cartas = [c["carta"] for c in self.motor_inferencia.obter_cartas()]
+                cartas_pergunta = inquirer.checkbox(
+                    message=
+                    f"Selecione as cartas perguntadas",
+                    choices=nome_cartas,
+                    height=15,
+                    qmark="",
+                    pointer="->",
+                    cycle=True, 
+                ).execute()
+                
+                if len(cartas_pergunta) == 2:
+                    if self.motor_inferencia.tipos_diferentes(cartas_pergunta[0], cartas_pergunta[1]):
+                        if jogadores_pergunta == 0:
+                            resposta_pergunta = inquirer.select(
+                                message="Selecione a Resposta da sua Pergunta",
+                                choices=[
+                                    {"name": f"{cartas_pergunta[0]}", "value": 0},
+                                    {"name": f"{cartas_pergunta[1]}", "value": 1},
+                                    {"name": "Não posso ajudar", "value": 2} 
+                                ],
+                                height=3,
+                                qmark="",
+                                default=None,
+                                pointer="->",
+                                cycle=True,
+                            ).execute()
+                            self.motor_inferencia.perguntar(cartas_pergunta, ["j0", "j1"], "false" if resposta_pergunta == 2 else cartas_pergunta[resposta_pergunta])
+                        else:
+                            resposta_pergunta = inquirer.select(
+                                message="Selecione a Resposta da Pergunta entre os Jogadores",
+                                choices=[
+                                    {"name": "Mostrou a Carta", "value": 0},
+                                    {"name": "Não posso ajudar", "value": 1} 
+                                ],
+                                height=3,
+                                qmark="",
+                                default=None,
+                                pointer="->",
+                                cycle=True,
+                            ).execute()
+                    else:
+                        print("As cartas perguntadas devem ser de tipos diferentes")
+                else: 
+                    print("A pergunta deve conter duas cartas de tipos diferentes")
                 pausar_terminal()
                     
             case "Sair":
