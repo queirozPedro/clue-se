@@ -27,7 +27,7 @@ class Interface:
             opcao = inquirer.select(
                 message="Escolha uma ação:",
                 choices=[
-                    "Iniciar jogo com 4 jogadores",
+                    "Iniciar jogo",
                     "Sair"
                 ],
                 default=None,
@@ -46,12 +46,12 @@ class Interface:
         opcao = inquirer.select(
             message="Escolha uma ação:",
             choices=[
-            "Exibir Cartas", # 1
-            "Realizar Descarte", # 2
-            "Exibir Descartadas", # 3
-            "Marcar Evidencias", # 4
-            "Exibir Evidencias", # 5
-            "Perguntar", # 6
+            "Exibir Cartas",
+            "Exibir Descartadas",
+            "Exibir Evidencias",
+            "Realizar Descarte",
+            "Marcar Evidencias",
+            "Perguntar",
             "Sair"
             ],
             height=15,
@@ -75,12 +75,29 @@ class Interface:
 
     def executar_opcao_jogo(self, op_jogo):
         match op_jogo:
-            case "Exibir Cartas": # 1
+            case "Exibir Cartas": 
                 limpar_terminal()
-                self.exibir_cartas_jogador()
+                cartas_jogador = self.motor_inferencia.obter_cartas()
+                for cartas in cartas_jogador:
+                    print(f"{cartas['carta']}")
                 pausar_terminal()
             
-            case "Realizar Descarte": # 2
+            case "Exibir Descartadas": 
+                limpar_terminal()
+                descartadas_jogador = self.motor_inferencia.obter_descartadas()
+                for descartada in descartadas_jogador:
+                    print(f"{descartada['carta']}")
+                self.exibir_descartadas_jogador()
+                pausar_terminal()
+            
+            case "Exibir Evidencias":
+                limpar_terminal()
+                evidencias_jogador = self.motor_inferencia.obter_evidencias()
+                for evidencia in evidencias_jogador:
+                    print(f"{evidencia['carta']}")
+                pausar_terminal()
+            
+            case "Realizar Descarte":
                 limpar_terminal()
                 cartas = self.motor_inferencia.obter_cartas()
                 nome_cartas = [c["carta"] for c in cartas]
@@ -95,18 +112,13 @@ class Interface:
                 for op in opcoes:
                     self.motor_inferencia.descartar_carta(op)
                 pausar_terminal()
-
-            case "Exibir Descartadas": # 3
-                limpar_terminal()
-                self.exibir_descartadas_jogador()
-                pausar_terminal()
             
-            case "Marcar Evidencias": # 4
+            case "Marcar Evidencias":
                 limpar_terminal()
                 cartas = self.motor_inferencia.obter_cartas()
                 nome_cartas = [c["carta"] for c in cartas]
                 evidencias = inquirer.checkbox(
-                    message="Selecione suas evidências",
+                    message=f"Selecione suas evidências ({(12 / self.quant_jogadores):.0f})",
                     choices=nome_cartas,
                     height=15,
                     qmark="",
@@ -119,10 +131,6 @@ class Interface:
                     print(f"Para um jogo com {self.quant_jogadores} jogadores, cada jogador deve possuir {(12 / self.quant_jogadores):.0f} evidências!")
                 pausar_terminal()       
 
-            case "Exibir Evidencias": # 5
-                limpar_terminal()
-                self.exibir_evidencias_jogador()
-                pausar_terminal()
             
             case "Perguntar":
                 limpar_terminal()
@@ -187,31 +195,17 @@ class Interface:
                     print("A pergunta deve conter duas cartas de tipos diferentes")
                 pausar_terminal()
                     
+            case "Exibir perguntas":
+                limpar_terminal()
+
+                pausar_terminal()
+
             case "Sair":
                 print("Sair")
                 self.em_jogo = False
                 pausar_terminal()
 
         limpar_terminal()
-
-
-    def exibir_cartas_jogador(self):
-        cartas_jogador = self.motor_inferencia.obter_cartas()
-        for cartas in cartas_jogador:
-            print(f"{cartas['carta']}")
-    
-
-    def exibir_descartadas_jogador(self):
-        descartadas_jogador = self.motor_inferencia.obter_descartadas()
-        for descartada in descartadas_jogador:
-            print(f"{descartada['carta']}")
-   
-   
-    def exibir_evidencias_jogador(self):
-        evidencias_jogador = self.motor_inferencia.obter_evidencias()
-        for evidencia in evidencias_jogador:
-            print(f"{evidencia['carta']}")
-
 
 def limpar_terminal():
     os.system('cls' if os.name == 'nt' else 'clear')

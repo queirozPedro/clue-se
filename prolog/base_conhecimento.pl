@@ -1,5 +1,4 @@
-% ----- DIRETIVAS -----
-
+% ---------------- Diretivas ----------------
 
 % Jogador_a, Jogador_b, Carta_a, Carta_b, Resposta(true, false, carta)
 :- dynamic pergunta/5.
@@ -13,7 +12,7 @@
 % jogador, carta_a, carta_b
 :- dynamic pode_ter_ou/3.
 
-% ----- FATOS -----
+% ---------------- Fatos ----------------
 
 carta(castical, arma).
 carta(corda, arma).
@@ -34,35 +33,45 @@ carta(scarlet, suspeito).
 carta(white, suspeito).
 
 
-% ----- REGRAS -----
+% ---------------- Regras Básicas ----------------
 
 /*
-    descarta a carta:
-        SE carta existir e não estiver descartada
-        ENTÃO cria o fato descartada
-        SENÃO remove o fato descartada
-
+    Regra que descarta uma carta, caso ela ainda não tenha sido descartada.
 */
-descartar_carta(Carta) :-
+descartar(Carta) :-
     carta(Carta, Tipo), \+ descartada(Carta, Tipo) ->
     (
         assert(descartada(Carta, Tipo))
-    );
-    (
-        retract(descartada(Carta, _Tipo))
     ).
-    
 
 /*
-    Verifica se os tipos são diferentes
+    Regra que verifica de duas cartas são de tipos defirentes
 */
 tipos_diferentes(Carta_a, Carta_b) :-
     carta(Carta_a, Tipo_a),
     carta(Carta_b, Tipo_b),
     Tipo_a \= Tipo_b.
 
+/*
+    Regra que verifica sem uma carta apareceu em alguma pergunta
+*/
+foi_perguntada(Jogador, Carta) :-
+    carta(Carta, _Tipo),
+    (
+        pergunta(Jogador, _, Carta, _, _);
+        pergunta(Jogador, _, _, Carta, _)
+    ).
+
+foi_resposta_da_pergunta(Carta) :-
+    carta(Carta, _),
+    foi_perguntada(j1, Carta),
+    \+ descartada(Carta, _).
+
+% ---------------- Regras Avançadas ----------------
 
 /*
+    Regra que anota as perguntas feitas no jogo.
+    
     pergunta/5 se:
         As cartas existirem e os tipos forem diferentes,
         salva a pergunta em um fato,
@@ -80,7 +89,7 @@ perguntar(Jogador_a, Jogador_b, Carta_a, Carta_b, Resposta) :-
     ) ->
     (
         assert(tem_carta(Jogador_b, Resposta)), % Nesse caso, Jogador_b será j1
-        descartar_carta(Resposta)
+        descartar(Resposta)
     );
     (
         Resposta == true ->
@@ -94,8 +103,8 @@ perguntar(Jogador_a, Jogador_b, Carta_a, Carta_b, Resposta) :-
         )
     ).   
 
-
 /*
+    Regra que descarta cartas que jogadores podem ter com base em respostas de outros jogadores
     Se um Jogador_a tem a Carta_a e Jogador_b tem (Carta_a ou Carta_b), então descarta a Carta_b
 */
 descartar_com_ou :-
@@ -106,7 +115,7 @@ descartar_com_ou :-
     (
         retract(tem_carta_ou(Jogador_b, Carta_a, Carta_b)),
         assert(tem_carta(Jogador_b, Carta_b)),
-        descartar_carta(Carta_b)
+        descartar(Carta_b)
     );
     (
         (
@@ -116,85 +125,14 @@ descartar_com_ou :-
         (
             retract(tem_carta_ou(Jogador_b, Carta_a, Carta_b)),
             assert(tem_carta(Jogador_b, Carta_a)),
-            descartar_carta(Carta_a)
+            descartar(Carta_a)
         )
     ).
 
 
-% -------------------------- COMO PERGUNTAR --------------------------
-
-como_perguntar(Status, Status_perguntada, Carta) :-
-    carta(Carta, _),
-    verifica_condicoes(1, Status, Carta),
-    verifica_condicoes_2(1, Status_perguntada, Carta),
-
-% ------------------- Sobre Outros Jogadores -------------------------
-
-num_condicoes(3).
-
-verifica_condicoes(Id, Ultimo_status, Carta) :- 
-    num_condicoes(Max),
-    Id =< Max,
-    condicao_pergunta(Id, _, Carta),
-    Next_Id is Id + 1,
-    verifica_condicoes(Next_Id, Ultimo_status, Carta), !.
-
-verifica_condicoes(Id, Status, Carta) :-
-    Id > 1,
-    Prev_Id is Id - 1,
-    condicao_pergunta(Prev_Id, Status, Carta), !.
-
-
-% Verifico se a carta é válida e removo as descartadas e evidências
-condicao_pergunta(1, '(1) N foi descartada e n esta com j0', Carta) :- 
-    \+ descartada(Carta, _), % não foi descartada
-    \+ evidencia(Carta, _), % não é uma evidência do j0
-    \+ foi_perguntada(j0 ,Carta).
-
-% Removo as cartas que eu sei que j3 e j3 não tem
-condicao_pergunta(2, '(3) Os outros jogadores não tem a carta', Carta) :-
-    nao_tem_carta(j2, Carta);
-    nao_tem_carta(j3, Carta).
-
-% Removo Cartas que outros jogadores podem ter ou não
-condicao_pergunta(3, '(3) N sao cartas que outros jogadores podem ter', Carta) :-
-    \+ pode_ter_ou(_, Carta, _),
-    \+ pode_ter_ou(_, _, Carta).
-
-
-% ----------------- Caminho das Cartas Perguntadas -------------------
-
-num_condicoes_2(1).
-
-verifica_condicoes_2(Id, Ultimo_status, Carta) :- 
-    num_condicoes_2(Max),
-    Id =< Max,
-    condicao_pergunta_2(Id, _, Carta),
-    Next_Id is Id + 1,
-    verifica_condicoes_2(Next_Id, Ultimo_status, Carta), !.
-
-verifica_condicoes_2(Id, Status, Carta) :-
-    Id > 1,
-    Prev_Id is Id - 1,
-    condicao_pergunta_2(Prev_Id, Status, Carta), !.
-
-condicao_pergunta_2(1, '(1) N foi perguntada ainda', Carta) :- 
-    \+ descartada(Carta, _), % não foi descartada
-    \+ evidencia(Carta, _), % não é uma evidência do j0
-    \+ foi_perguntada(_, Carta).
-
-% --------------------------------------------------------------------
-
-
-foi_perguntada(Jogador, Carta) :-
-% Verdadeiro se a carta apareceu em alguma pergunta
-    carta(Carta, _Tipo),
-    (
-        pergunta(Jogador, _, Carta, _, _);
-        pergunta(Jogador, _, _, Carta, _)
-    ).
-
-
+/*
+    Vou melhorar
+*/
 como_responder(Carta_a, Carta_b) :-
     (
         carta(Carta_a, Tipo_a),
@@ -215,3 +153,40 @@ como_responder(Carta_a, Carta_b) :-
             evidencia(Carta_b, _), format("Resposta: ~w", [Carta_b])
         )
     ).
+
+
+% ---------------- Como Perguntar ----------------
+
+
+como_perguntar(Carta, "a carta nao esta com j2 nem com j3") :-
+    (
+        carta(Carta, _),
+        \+ foi_perguntada(j1, Carta)
+    ),
+    (
+        nao_tem_carta(j2, Carta),
+        nao_tem_carta(j3, Carta)
+    ), !.
+
+como_perguntar(Carta, "a carta nao esta com j2 ou com j3") :-
+    (
+        carta(Carta, _),
+        \+ foi_perguntada(j1, Carta)
+    ), 
+    (   
+        nao_tem_carta(j2, Carta);
+        nao_tem_carta(j3, Carta)
+    ), !.
+
+como_perguntar(Carta, "a carta nao foi perguntada a ninguem") :-
+    carta(Carta, _),
+    \+ foi_perguntada(_, Carta), !.
+
+como_perguntar(Carta, "a carta nao foi perguntada a j1") :-
+    carta(Carta, _),
+    \+ foi_perguntada(j1, Carta), !.
+
+como_perguntar(Carta, "a carta foi perguntada mas nao foi a resposta") :-
+    carta(Carta, _),
+    foi_perguntada(j1, Carta), 
+    \+ foi_resposta_da_pergunta(Carta), !.

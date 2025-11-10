@@ -67,8 +67,22 @@ class Motor_inferencia:
             print(f"Erro ao consultar evidencia: {e}")
             return []
 
+
     def perguntar(self, cartas, jogadores, resposta):
         list(self.prolog.query(f"perguntar({jogadores[0]}, {jogadores[1]}, {cartas[0]}, {cartas[1]}, {resposta})"))
+    
+
+    def obter_perguntas(self):
+        try:
+            resultados = [
+                {"jogador_a": r["Jogador_a"], "jogador_b": r["Jogador_b"], "carta_a": r["Carta_a"], "carta_b": r["Carta_b"], "resposta": r["Resposta"]}
+                for r in self.prolog.query(f"perguntar(Jogador_a, Jogador_b, Carta_a, Carta_b, Resposta)")
+            ]
+            return resultados
+        except Exception as e:
+            print(f"Erro ao buscar perguntas: {e}")
+            return []
+
 
     def tipos_diferentes(self ,carta_a, carta_b):
         try:
