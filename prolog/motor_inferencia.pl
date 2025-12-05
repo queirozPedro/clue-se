@@ -106,16 +106,6 @@ tipos_diferentes(Carta_a, Carta_b) :-
     Tipo_a \= Tipo_b.
 
 
-% Verifica se três cartas são de tipos diferentes.
-tres_tipos_diferentes(Carta_a, Carta_b, Carta_c) :-
-    carta(Carta_a, Tipo_a),
-    carta(Carta_b, Tipo_b),
-    carta(Carta_c, Tipo_c),
-    Tipo_a \= Tipo_b,
-    Tipo_b \= Tipo_c,
-    Tipo_c \= Tipo_a.
-
-
 % Verifica a quem a carta foi perguntada.
 foi_perguntada(Jogador, Carta) :-
     carta(Carta, _),
