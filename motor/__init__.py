@@ -1,1 +1,0 @@
-from .motor_inferencia import Motor_inferencia

@@ -1,1 +1,1 @@
-from .cli import Interface
+from .interface import Interface

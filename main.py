@@ -1,10 +1,10 @@
-from motor.motor_inferencia import Motor_inferencia
-from interface.cli import Interface
+from controlador.controlador import Controlador
+from interface.interface import Interface
 
 
 def main():
-    motor_inferencia = Motor_inferencia()
-    interface = Interface(motor_inferencia)
+    controlador = Controlador()
+    interface = Interface(controlador)
     interface.start()
 
 
