@@ -21,7 +21,7 @@ class Controlador:
         self.prolog.consult(caminho_completo)
 
 
-    def obter_cartas(self):
+    def consultar_cartas(self):
         try:
             resultados = [
                 {"carta": r["Carta"], "tipo": r["Tipo"]}
@@ -33,53 +33,87 @@ class Controlador:
             return []
 
 
-    def visualizar_anotacoes(self):
-        resultado = list(self.prolog.query("visualizar_cartas(Resultado)."))
-        # resultado é uma lista com uma posição, que é um dicionário que só tem uma chave "Resultado", que dá para uma lista de strings
-        text = []
-        for r in resultado[0]["Resultado"]:
-            string = r.replace(",(", " ").replace("b'", " ").replace("')", " ").split(",")
-            string = [t.strip() for t in string]
-            text.append(string)
-        return text
-        
+    def consultar_anotacoes(self):
+        try:
+            resultado = list(self.prolog.query("consultar_anotacoes(Resultado)."))
+
+            # resultado é uma lista com uma única posição contendo um dicionário
+            cartas = resultado[0]["Resultado"]
+
+            text = []
+            for r in cartas:
+                string = (
+                    r.replace(",(", " ")
+                    .replace("b'", " ")
+                    .replace("')", " ")
+                    .split(",")
+                )
+                string = [t.strip() for t in string]
+                text.append(string)
+            return text
+
+        except Exception as e:
+            print(f"Erro em consultar_anotacoes: {e}")
+            return []
+
 
     def marcar_evidencias(self, cartas):
-        for carta in cartas:
-            next(self.prolog.query(f"marcar_evidencia({carta})"))
-            
+        try:
+            for carta in cartas:
+                next(self.prolog.query(f"marcar_evidencia({carta})"))
+        except Exception as e:
+            print(f"Erro ao marcar_evidencias: {e}")
+  
 
     def verificar_melhor_pergunta(self):
-        resultado = list(self.prolog.query("melhor_pergunta(Resultado)."))
+        try:
+            resultado = list(self.prolog.query("melhor_pergunta(Resultado)."))
 
-        text = []
-        for r in resultado[0]["Resultado"]:
-            s = (r.replace(",(", " ")
-                .replace("b'", " ")
-                .replace("[", " ")
-                .replace("]", " ")
-                .replace('"', " ")
-                .replace(")", " "))
+            text = []
+            for r in resultado[0]["Resultado"]:
+                s = (r.replace(",(", " ")
+                    .replace("b'", " ")
+                    .replace("[", " ")
+                    .replace("]", " ")
+                    .replace('"', " ")
+                    .replace(")", " ")
+                    .replace("'", " "))
 
-            partes = [t.strip() for t in s.split(",") if t.strip()]
-            pares = [(partes[i], partes[i+1]) for i in range(0, len(partes), 2)]
-            text.append(pares)
-        return text
+                partes = [t.strip() for t in s.split(",") if t.strip()]
+                pares = [(partes[i], partes[i+1]) for i in range(0, len(partes), 2)]
+                text.append(pares)
+            return text
+
+        except Exception as e:
+            print(f"Erro ao verificar melhor pergunta: {e}")
+            return []
         
     
     def como_perguntar(self):
-        resultado = list(self.prolog.query("como_perguntar(Resultado)."))
-        # resultado é uma lista com uma posição, que é um dicionário que só tem uma chave "Resultado", que dá para uma lista de strings
-        text = []
-        for r in resultado[0]["Resultado"]:
-            string = r.replace(",(", " ").replace("b'", " ").replace("'))", " ").split(",")
-            string = [t.strip() for t in string]
-            text.append(string)
-        return text
+        try:
+            resultado = list(self.prolog.query("como_perguntar(Resultado)."))
+            # resultado é uma lista com uma posição, que é um dicionário que só tem uma chave "Resultado", que dá para uma lista de strings
+            text = []
+            for r in resultado[0]["Resultado"]:
+                string = r.replace(",(", " ").replace("b'", " ").replace("'))", " ").split(",")
+                string = [t.strip() for t in string]
+                text.append(string)
+            return text
+
+        except Exception as e:
+            print(f"Erro ao executar como_perguntar: {e}")
+            return []
         
     
     def perguntar(self, cartas, jogadores, resposta):
-        list(self.prolog.query(f"registrar_pergunta({jogadores[0]}, {jogadores[1]}, {cartas[0]}, {cartas[1]}, {resposta})"))
+        try:
+            return list(self.prolog.query(
+                f"registrar_pergunta({jogadores[0]}, {jogadores[1]}, {cartas[0]}, {cartas[1]}, {resposta})"
+            ))
+        except Exception as e:
+            print(f"Erro ao registrar pergunta: {e}")
+            return False
+
     
     def obter_perguntas(self):
         try:
@@ -104,11 +138,70 @@ class Controlador:
             print(f"Erro ao consultar tipos_diferentes: {e}")
             return False
         
+    def consultar_tipo(self, carta):
+        try:
+            resultado = list(self.prolog.query(f"carta({carta}, Tipo)"))
+            return resultado[0]["Tipo"]
+        except Exception as e:
+            print(f"Erro ao consultar tipo da carta {carta}: {e}")
+            return None
+
+
+    def responder_pergunta(self, cartas):
+        resultado = list(self.prolog.query(f"como_responder({cartas[0]}, {cartas[1]}, Info)"))
+        string = f"{resultado[0]["Info"]}"
+        
+        if "carta_a" in string:
+            return cartas[0]
+        elif "carta_b" in string:
+            return cartas[1]
+        else:
+            return False
+        
+    def verificar_melhor_acusacao(self):
+        try:
+            resultado = list(self.prolog.query("melhor_acusacao(Resultado)."))
+
+            text = []
+            for r in resultado[0]["Resultado"]:
+                s = (
+                    r.replace(",(", " ")
+                    .replace("b'", " ")
+                    .replace("[", " ")
+                    .replace("]", " ")
+                    .replace('"', " ")
+                    .replace(")", " ")
+                    .replace("'", " ")
+                )
+
+                partes = [t.strip() for t in s.split(",") if t.strip()]
+                pares = [(partes[i], partes[i+1]) for i in range(0, len(partes), 2)]
+                text.append(pares)
+            return text
+
+        except Exception as e:
+            print(f"Erro ao verificar melhor acusacao: {e}")
+            return []
+
+
+    def contar_cartas_jogador(self, jogador):
+        try:
+            resultado = list(self.prolog.query(f"tem_carta({jogador}, _)"))
+            return len(resultado)
+        except Exception as e:
+            print(f"Erro ao contar cartas do jogador {jogador}: {e}")
+            return 0
+
 
     def atualizar_inferencias(self):
-        print("executar_inferencias()")
-        list(self.prolog.query("executar_inferencias"))
+        try:
+            list(self.prolog.query("executar_inferencias"))
+        except Exception as e:
+            print(f"Erro ao atualizar inferências: {e}")
 
 
     def reiniciar_estado(self):
-        list(self.prolog.query("reiniciar_estado"))
+        try:
+            list(self.prolog.query("reiniciar_estado"))
+        except Exception as e:
+            print(f"Erro ao reiniciar estado: {e}")

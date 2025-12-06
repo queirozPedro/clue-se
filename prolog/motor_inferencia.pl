@@ -12,7 +12,7 @@
     eh_tipo/2,
     tipos_diferentes/2,
     status_carta/2,
-    visualizar_cartas/1,
+    consultar_anotacoes/1,
 
     % Jogadores e Perguntas
     pergunta/5,
@@ -33,14 +33,13 @@
     avaliar_carta_pergunta/3,
     prioridade_resposta/2,
     como_responder/3,
-    melhor_chute/1,
-    como_chutar/1,
+    melhor_acusacao/1,
+    como_acusar/1,
     avaliar_carta_acusacao/3,
 
     % Auxiliar
     reiniciar_estado/0
 ]).
-
 
 
 % ---------------- Diretivas ----------------
@@ -115,9 +114,8 @@ foi_perguntada(Jogador, Carta) :-
 
 % ----------------- Visualizar Cartas ------------------
 
-
 % Percorre as cartas verificando qual seu status.
-visualizar_cartas(Resultado) :-
+consultar_anotacoes(Resultado) :-
     findall(
         (Carta, Info),
         (
@@ -142,7 +140,6 @@ status_carta(Carta, "sem_info") :-
 
 % ---------------- Regras de Informação ----------------
 % Regras que auxiliam no gerenciamento de anotações
-
 
 % Regra que registra as perguntas feitas no jogo.
 registrar_pergunta(Jogador_a, Jogador_b, Carta_a, Carta_b, Resposta) :-
@@ -227,44 +224,8 @@ inferir_carta_crime() :-
     ).
 
 
-
 % ---------------- Como Perguntar ----------------
 
-
-% Percorre todas as cartas verificando seu status e colocanndo em ordem de prioridade
-como_perguntar(Resultado) :-
-    findall(
-        P-(Carta,Info),
-        (
-            carta(Carta,_), 
-            avaliar_carta_pergunta(Carta, P, Info)
-        ),
-        Lista),
-    keysort(Lista, Ordenada),
-    Resultado = Ordenada.
-
-avaliar_carta_pergunta(Carta, 6, "carta eliminada") :- % Filtro
-    \+ carta(Carta, _); carta_eliminada(Carta, _), !.
-
-avaliar_carta_pergunta(Carta, 6, "carta evidencia") :- % Filtro
-    carta_evidencia(Carta, _), !.
-
-avaliar_carta_pergunta(Carta, 6, "carta crime") :- % Filtro
-    carta_crime(Carta, _), !.
-
-avaliar_carta_pergunta(Carta, 1, "os jogadores 2 e 3 nao tem essa carta") :- 
-    nao_tem_carta(jogador_2, Carta), nao_tem_carta(jogador_3, Carta), !.
-
-avaliar_carta_pergunta(Carta, 2,  "o jogador 2 nao tem essa carta") :-
-    nao_tem_carta(jogador_2, Carta), !.
-avaliar_carta_pergunta(Carta, 2, "o jogador 3 nao tem essa carta") :-
-    nao_tem_carta(jogador_3, Carta), !.
-
-avaliar_carta_pergunta(Carta, 3, "a carta ainda nao foi perguntada na partida") :-
-    \+ foi_perguntada(_, Carta), !.
-
-avaliar_carta_pergunta(Carta, 4, "foi perguntada mas nao foi a resposta") :-
-    foi_perguntada(jogador_1, Carta), !.
 
 % Analisa a lista de cartas e retorna as melhores opções de carta para perguntar
 melhor_pergunta(Resultado) :-
@@ -300,6 +261,47 @@ melhor_pergunta(Resultado) :-
 
     Resultado = [(Carta_a, Info_a, Outras_a),  (Carta_b, Info_b, Outras_b)].
 
+% Percorre todas as cartas verificando seu status e colocanndo em ordem de prioridade
+como_perguntar(Resultado) :-
+    findall(
+        P-(Carta,Info),
+        (
+            carta(Carta,_), 
+            avaliar_carta_pergunta(Carta, P, Info)
+        ),
+        Lista),
+    keysort(Lista, Ordenada),
+    Resultado = Ordenada.
+
+avaliar_carta_pergunta(Carta, 7, "carta eliminada") :- % Filtro
+    \+ carta(Carta, _); carta_eliminada(Carta, _), !.
+
+avaliar_carta_pergunta(Carta, 7, "carta de evidencia") :- % Filtro
+    carta_evidencia(Carta, _), !.
+
+avaliar_carta_pergunta(Carta, 7, "carta do crime") :- % Filtro
+    carta_crime(Carta, _), !.
+
+avaliar_carta_pergunta(Carta, 1, "nao possuida pelos jogadores 2 e 3") :- 
+    nao_tem_carta(jogador_2, Carta), nao_tem_carta(jogador_3, Carta), !.
+
+avaliar_carta_pergunta(Carta, 2,  "nao possuida pelo jogador 2") :-
+    nao_tem_carta(jogador_2, Carta), !.
+
+avaliar_carta_pergunta(Carta, 2, "nao possuida pelo jogador 3") :-
+    nao_tem_carta(jogador_3, Carta), !.
+
+avaliar_carta_pergunta(Carta, 3, "nao questionada") :-
+    \+ foi_perguntada(_, Carta), !.
+
+avaliar_carta_pergunta(Carta, 4, "o jogador 2 pode ter") :-
+    (pode_ter_carta(jogador_2, Carta, _) ; pode_ter_carta(jogador_2, _, Carta)), !.
+
+avaliar_carta_pergunta(Carta, 5, "o jogador 2 pode ter") :-
+    (pode_ter_carta(jogador_2, Carta, _) ; pode_ter_carta(jogador_2, _, Carta)), !.
+
+avaliar_carta_pergunta(Carta, 6, "citada em pergunta ao jogador 1") :-
+    foi_perguntada(jogador_1, Carta), !.
 
 
 % ---------------- Como Responder ----------------
@@ -332,7 +334,7 @@ como_responder(Carta_a, Carta_b, Resposta) :-
     prioridade_resposta(Carta_a, P_a),
     prioridade_resposta(Carta_b, P_b),
     (
-        P_a < P_b 
+        P_a =< P_b 
         -> Resposta = "carta_a"
         ;  Resposta = "carta_b"
     ).
@@ -340,8 +342,8 @@ como_responder(Carta_a, Carta_b, Resposta) :-
 
 % ---------------- Como Chutar ----------------
 
-melhor_chute(Resultado) :-
-    como_chutar(Lista),
+melhor_acusacao(Resultado) :-
+    como_acusar(Lista),
     Lista = [P_a-(Carta_a, Info_a) | Restante],
 
     member(P_b-(Carta_b, Info_b), Restante),
@@ -391,8 +393,7 @@ melhor_chute(Resultado) :-
         (Carta_c, Info_c, Outras_c)
     ].
 
-
-como_chutar(Resultado) :-
+como_acusar(Resultado) :-
     findall(
             P-(Carta,Info),
             (
@@ -421,7 +422,7 @@ avaliar_carta_acusacao(Carta, 3, "outro jogador nao tem essa carta") :-
     \+ carta_eliminada(Carta,_), 
     nao_tem_carta(_, Carta), !.
 
-avaliar_carta_acusacao(Carta, 4, "sem informacoes sobre a carta") :- 
+avaliar_carta_acusacao(Carta, 4, "sem info") :- 
     carta(Carta, _).
 
 
