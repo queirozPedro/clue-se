@@ -95,6 +95,7 @@ eliminar_carta(Carta) :-
 marcar_evidencia(Carta) :-
     carta(Carta, Tipo),
     \+ carta_evidencia(Carta, _),
+    assertz(tem_carta(jogador_0, Carta)),
     assertz(carta_evidencia(Carta, Tipo)).
 
 
@@ -274,13 +275,16 @@ como_perguntar(Resultado) :-
     Resultado = Ordenada.
 
 avaliar_carta_pergunta(Carta, 7, "carta eliminada") :- % Filtro
-    \+ carta(Carta, _); carta_eliminada(Carta, _), !.
+    carta_eliminada(Carta, _), !.
 
 avaliar_carta_pergunta(Carta, 7, "carta de evidencia") :- % Filtro
     carta_evidencia(Carta, _), !.
 
 avaliar_carta_pergunta(Carta, 7, "carta do crime") :- % Filtro
     carta_crime(Carta, _), !.
+
+avaliar_carta_pergunta(Carta, 7,  "nao possuida pelo jogador 1") :-
+    nao_tem_carta(jogador_1, Carta), nao_tem_carta(jogador_1, Carta), !.
 
 avaliar_carta_pergunta(Carta, 1, "nao possuida pelos jogadores 2 e 3") :- 
     nao_tem_carta(jogador_2, Carta), nao_tem_carta(jogador_3, Carta), !.
@@ -297,8 +301,8 @@ avaliar_carta_pergunta(Carta, 3, "nao questionada") :-
 avaliar_carta_pergunta(Carta, 4, "o jogador 2 pode ter") :-
     (pode_ter_carta(jogador_2, Carta, _) ; pode_ter_carta(jogador_2, _, Carta)), !.
 
-avaliar_carta_pergunta(Carta, 5, "o jogador 2 pode ter") :-
-    (pode_ter_carta(jogador_2, Carta, _) ; pode_ter_carta(jogador_2, _, Carta)), !.
+avaliar_carta_pergunta(Carta, 5, "o jogador 3 pode ter") :-
+    (pode_ter_carta(jogador_3, Carta, _) ; pode_ter_carta(jogador_3, _, Carta)), !.
 
 avaliar_carta_pergunta(Carta, 6, "citada em pergunta ao jogador 1") :-
     foi_perguntada(jogador_1, Carta), !.
