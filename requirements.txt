@@ -1,5 +1,11 @@
+colorama==0.4.6
+iniconfig==2.3.0
 inquirerpy==0.3.4
+packaging==25.0
 pfzy==0.3.4
+pluggy==1.6.0
 prompt_toolkit==3.0.52
+Pygments==2.19.2
 pyswip==0.3.3
+pytest==9.0.2
 wcwidth==0.2.14

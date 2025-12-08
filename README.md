@@ -1,18 +1,25 @@
-## Clue Suspeitos - Sistema Especialista em Prolog
+## Clue Suspeitos - Sistema Especialista
 
-Este projeto implementa um Sistema Especialista (SE) com motor de inferência lógica utilizando a linguagem Prolog, aplicado ao jogo Clue Suspeitos®. O objetivo do sistema é simular o raciocínio dedutivo necessário para identificar o autor do crime, o local e a arma, por meio de uma base de conhecimento estruturada e regras lógicas.
+### Descrição
 
-O SE permite ao usuário interagir com o sistema para registrar evidências, formular perguntas e obter sugestões de respostas ou acusações, automatizando a análise das informações ocultas e suportando decisões estratégicas no jogo. O projeto combina a lógica declarativa do Prolog com a modelagem das regras do jogo, oferecendo uma ferramenta educativa e experimental para explorar inferências automatizadas em contextos de jogos de raciocínio lógico.
+Esse projeto visa o desenvolvimento de um Sistema Especialista com Motor de Inferências em Prolog para jogar o jogo Clue Suspeitos. O sistema foi desenvolvido em Python (interface CLI) e Prolog (motor de inferência e base de conhecimento). A integração entre as partes ocorreu por meio da biblioteca pyswip, responsável por conectar o Python ao SWI-Prolog (uma implementação moderna da linguagem Prolog).
 
----
+#### Sobre o Clue Suspeitos
 
-## Instalação
-### Pré-requisitos
+Clue Suspeitos é um jogo do gênero detetive, no qual o jogador compete com até outros três jogadores a fim de descobrir o cenário de um crime, composto por uma arma, um lugar e um suspeito. No jogo, existem quatro armas, cinco lugares e seis suspeitos, que são representados a partir de um conjunto de cartas. No início de cada partida, uma carta de cada tipo é selecionada de maneira oculta e aleatória, sendo disposta no centro da mesa, representando o crime. As demais cartas são reunidas, embaralhadas e distribuídas igualmente entre os jogadores, definindo as evidências de cada um. Ao longo das rodadas, os jogadores devem realizar perguntas a fim de descobrir as evidências dos demais, identificando assim, por eliminação, quais cartas compõem o crime.
+
+#### Sistema Especialista (SE)
+
+O sistema especialista foi desenvolvido considerando o aspacto lógico e dedutivo do jogo, que representa uma estrutura adequada para a aplicação desse tipo de sistema. O Motor de Inferências, peça central de um SE, foi desenvolvido em Prolog, linguagem de programação lógica que trabalha com fatos e regras do tipo SE-ENTÃO. Cenários de jogo, lógica dedutiva aplicada a perguntas e respostas, e aquisição de conhecimento indireto foram alguns dos fatos observados durante o desenvolvimento do motor.
+
+### Instalação do Projeto
+
+#### Pré-requisitos
 
 - Python 3.10 ou superior
-- SWI-Prolog
+- <a href="https://www.swi-prolog.org/">SWI-Prolog</a>
 
-### Passo a Passo de Instalação
+#### Passo a Passo de Instalação
 
 1. **Clonar o repositório**
 
@@ -28,12 +35,11 @@ python -m venv venv
 ```
 
 3. **Ativar um ambiente virtual**
-* No Windows:
+* Windows:
 ```bash
 venv\Scripts\activate
 ```
-
-* No macOS / Linux:
+* macOS / Linux:
 ```bash
 source venv/bin/activate
 ```
@@ -44,15 +50,12 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-5. **Verificar a instalação do SWI-Prolog**
-
-```bash
-swipl --version
-```
-
-6. **Executar o sistema**
+5. **Executar o sistema**
 
 ```bash
 python main.py
 ```
 
+#### Sobre a utilização
+
+O sistema usa uma interface CLI baseada em menus interativos, onde o usuário seleciona as opções usando as setas e confirma com Enter. Múltiplas seleções podem ser feitas com a barra de espaço.
