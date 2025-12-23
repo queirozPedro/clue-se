@@ -109,8 +109,10 @@ tipos_diferentes(Carta_a, Carta_b) :-
 % Verifica a quem a carta foi perguntada.
 foi_perguntada(Jogador, Carta) :-
     carta(Carta, _),
-        pergunta(_, Jogador, Carta, _, _);
-        pergunta(_, Jogador, _, Carta, _).
+        (
+            pergunta(_, Jogador, Carta, _, _);
+            pergunta(_, Jogador, _, Carta, _)
+        ).
 
 
 % ----------------- Visualizar Cartas ------------------
@@ -201,7 +203,7 @@ eh_tipo(lugar, (_, lugar)).
 eh_tipo(suspeito, (_, suspeito)).
 
 % Inferir carta crime
-inferir_carta_crime() :-
+inferir_carta_crime :-
     findall(
         (Carta, Tipo),
         (
@@ -284,7 +286,7 @@ avaliar_carta_pergunta(Carta, 10, "carta do crime") :- % Filtro
     carta_crime(Carta, _), !.
 
 avaliar_carta_pergunta(Carta, 7,  "nao possuida pelo jogador 1") :-
-    nao_tem_carta(jogador_1, Carta), nao_tem_carta(jogador_1, Carta), !.
+    nao_tem_carta(jogador_1, Carta), !.
 
 avaliar_carta_pergunta(Carta, 1, "nao possuida pelos jogadores 2 e 3") :- 
     nao_tem_carta(jogador_2, Carta), nao_tem_carta(jogador_3, Carta), !.

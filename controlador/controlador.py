@@ -195,7 +195,8 @@ class Controlador:
 
     def atualizar_inferencias(self):
         try:
-            list(self.prolog.query("executar_inferencias"))
+            if list(self.prolog.query("executar_inferencias")):
+               self.atualizar_inferencias() 
         except Exception as e:
             print(f"Erro ao atualizar inferências: {e}")
 
