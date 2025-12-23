@@ -274,13 +274,13 @@ como_perguntar(Resultado) :-
     keysort(Lista, Ordenada),
     Resultado = Ordenada.
 
-avaliar_carta_pergunta(Carta, 7, "carta eliminada") :- % Filtro
+avaliar_carta_pergunta(Carta, 8, "carta eliminada") :- % Filtro
     carta_eliminada(Carta, _), !.
 
-avaliar_carta_pergunta(Carta, 7, "carta de evidencia") :- % Filtro
+avaliar_carta_pergunta(Carta, 9, "carta de evidencia") :- % Filtro
     carta_evidencia(Carta, _), !.
 
-avaliar_carta_pergunta(Carta, 7, "carta do crime") :- % Filtro
+avaliar_carta_pergunta(Carta, 10, "carta do crime") :- % Filtro
     carta_crime(Carta, _), !.
 
 avaliar_carta_pergunta(Carta, 7,  "nao possuida pelo jogador 1") :-
@@ -419,8 +419,8 @@ avaliar_carta_acusacao(Carta, 1, "faz parte do crime") :-
 
 avaliar_carta_acusacao(Carta, 2, "outros 2 jogadores nao tem essa carta") :-
     \+ carta_eliminada(Carta,_), 
-    aggregate_all(count, nao_tem_carta(_, Carta), N),
-    N =:= 2, !.
+    nao_tem_carta(_Jogador_a, Carta),
+    nao_tem_carta(_Jogador_b, Carta), !.
 
 avaliar_carta_acusacao(Carta, 3, "outro jogador nao tem essa carta") :-
     \+ carta_eliminada(Carta,_), 
